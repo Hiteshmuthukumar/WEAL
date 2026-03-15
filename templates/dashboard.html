@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood_Sense | Neural Haemoglobin Interface</title>
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(0, 210, 255, 0.2);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #060910;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- Background Grid --- */
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 210, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 210, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+        }
+
+        /* --- Header Section --- */
+        .header {
+            text-align: center;
+            padding: 60px 20px 40px;
+        }
+
+        .main-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    letter-spacing: 12px;
+    margin: 0;
+
+    background: linear-gradient(to right, #fff, var(--primary), #fff);
+
+    background-clip: text;          /* Standard property */
+    -webkit-background-clip: text;  /* Chrome / Safari */
+
+    color: transparent;             /* Firefox support */
+    -webkit-text-fill-color: transparent;
+
+    text-transform: uppercase;
+}
+
+        .subtitle {
+            color: var(--primary);
+            letter-spacing: 5px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        /* --- Main Layout --- */
+        .content-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            max-width: 1200px;
+            width: 90%;
+            padding-bottom: 60px;
+        }
+
+        /* --- Instructions Card --- */
+       /* --- Instructions Card --- */
+.card {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 30px;
+    padding: 30px;
+    
+    /* FIX: Force the card to a specific height or 100% of container */
+    height: 500px; /* Adjust this value to your preferred total height */
+    
+    /* FILL LOGIC: This spreads the instructions out equally */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+    
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-sizing: border-box; /* Ensures padding doesn't add to height */
+}
+
+.step { 
+    display: flex; 
+    align-items: flex-start;
+    /* Remove margin-bottom since space-between handles the gaps */
+    margin-bottom: 0; 
+}
+
+.step-num {
+    color: var(--primary);
+    font-weight: 900;
+    font-size: 1.1rem;
+    margin-right: 20px;
+    border: 1px solid var(--primary);
+    padding: 5px 10px;
+    border-radius: 8px;
+    flex-shrink: 0; /* Prevents the number box from squishing */
+}
+
+.step h3 { 
+    margin: 0; 
+    font-size: 1rem; 
+    letter-spacing: 1px; 
+    line-height: 1;
+}
+
+.step p { 
+    margin: 8px 0 0; 
+    color: #94a3b8; 
+    font-size: 0.9rem; 
+    line-height: 1.5;
+}
+
+        /* --- Upload/Scan Section --- */
+        .scan-container {
+            flex: 1;
+            min-width: 320px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .drop-zone {
+            width: 100%;
+            height: 350px;
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 210, 255, 0.03);
+            transition: 0.3s;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: rgba(0, 210, 255, 0.07);
+        }
+
+        /* Radar Scanning Line Animation */
+        .radar {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            animation: scanMove 3s infinite linear;
+            z-index: 2;
+        }
+        @keyframes scanMove { 0% { top: 0%; } 100% { top: 100%; } }
+
+        #image-preview {
+            position: absolute;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: none;
+            z-index: 1;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            opacity: 0.8;
+            z-index: 3;
+        }
+
+        .btn-initiate {
+            width: 100%;
+            padding: 20px;
+            margin-top: 25px;
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-weight: 900;
+            font-size: 1rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+        }
+
+        .btn-initiate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px var(--primary);
+            letter-spacing: 6px;
+        }
+
+        input[type="file"] {
+            position: absolute;
+            width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+
+    <div class="header">
+        <h1 class="main-title">BLOOD_SENSE</h1>
+        <div class="subtitle">HAEMOGLOBIN NEURAL INTERFACE</div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="card">
+            <div class="step">
+                <div class="step-num">01</div>
+                <div>
+                    <h3>POSITION</h3>
+                    <p>Maintain a disance of 15-20cm from the lens and ensure the eye is centered before capturing the image.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">02</div>
+                <div>
+                    <h3>REVEAL</h3>
+                    <p>Gently pull down the lower eyelid to expose the red inner tissue ( palpebral conjunctiva ).</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">03</div>
+                <div>
+                    <h3>CAPTURE</h3>
+                    <p>Ensure clear, bright lighting on the tissue area.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">04</div>
+                <div>
+                    <h3>ANALYSE</h3>
+                    <p>Upload data to initiate neural RGB mapping.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="scan-container">
+            <form action="/predict" method="POST" enctype="multipart/form-data" style="width: 100%;">
+                <div class="drop-zone" id="dropZone">
+                    <div class="radar"></div>
+                    <img id="image-preview" src="" alt="Preview">
+                    
+                    <div id="drop-text" style="text-align: center; z-index: 3;">
+                        <div class="upload-icon">⊕</div>
+                        <p style="font-weight: bold; letter-spacing: 2px;">DROP NEURAL DATA</p>
+                        <p style="font-size: 0.7rem; color: #64748b;">OR CLICK TO BROWSE</p>
+                    </div>
+
+                    <input type="file" name="eye_image" id="eyeInput" accept="image/*" required onchange="handlePreview()">
+                </div>
+
+                <button type="submit" class="btn-initiate">Initiate Neural Scan</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function handlePreview() {
+            const input = document.getElementById('eyeInput');
+            const preview = document.getElementById('image-preview');
+            const dropText = document.getElementById('drop-text');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    dropText.style.opacity = '0.3'; // Fades text when image is present
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>

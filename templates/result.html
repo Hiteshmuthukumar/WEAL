@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Report | Blood_Sense AI</title>
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --accent: #ff4b2b; /* Red for low status */
+            --safe: #00ff88;   /* Green for normal status */
+            --bg: #060910;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* --- Animated Tech Background --- */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0, 210, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 210, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            transform: perspective(1000px) rotateX(60deg);
+            animation: gridFlow 20s linear infinite;
+        }
+        @keyframes gridFlow { from { background-position: 0 0; } to { background-position: 0 50px; } }
+
+        /* --- Main HUD Container --- */
+        .report-card {
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 40px;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            animation: cardPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes cardPop { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+        /* --- Header Styling --- */
+        .header {
+            font-size: 0.7rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        /* --- Circular Progress Area --- */
+        .gauge-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 2rem;
+        }
+
+        .svg-ring { transform: rotate(-90deg); }
+        .ring-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 8; }
+        .ring-progress {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 565;
+            stroke-dashoffset: 565; /* Controlled via JS */
+            transition: stroke-dashoffset 2s ease-out;
+            filter: drop-shadow(0 0 8px var(--primary));
+        }
+
+        .hb-display {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .hb-value {
+    font-size: 4.5rem;
+    font-weight: 900;
+    margin: 0;
+    line-height: 1;
+    background: linear-gradient(to bottom, #fff, #94a3b8);
+    
+    /* Vendor Prefix: Required for Chrome, Safari, and newer Edge */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    /* Standard Property: For future-proofing and Firefox */
+    background-clip: text;
+    /* Note: color: transparent is the standard fallback for -webkit-text-fill-color */
+    color: transparent; 
+}
+
+        /* --- Image Preview --- */
+        .scan-preview {
+            width: 100px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid var(--primary);
+            margin-bottom: 1rem;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border { 0%, 100% { border-color: var(--primary); } 50% { border-color: white; } }
+
+        /* --- Status Badge --- */
+        .status-badge {
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border: 1px solid;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            background: rgba(255,255,255,0.05);
+            transition: 0.5s;
+        }
+
+        /* --- Action Buttons --- */
+        .btn-group { display: flex; gap: 15px; margin-top: 2rem; }
+        
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: 900;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: 0.3s;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-back { background: var(--glass); color: white; }
+        .btn-back:hover { background: white; color: black; }
+
+        .btn-download {
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+        }
+        .btn-download:hover { box-shadow: 0 0 20px var(--primary); transform: translateY(-2px); }
+
+        /* --- HUD Scanning corners --- */
+        .corner { position: absolute; width: 20px; height: 20px; border: 2px solid var(--primary); opacity: 0.5; }
+        .tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; }
+        .br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+
+    <div class="report-card">
+        <div class="corner tl"></div>
+        <div class="corner br"></div>
+        
+        <div class="header">Neural_Diagnostic_Report</div>
+
+        <img src="{{image_path}}" class="scan-preview" alt="Neural Scan">
+
+        <div class="gauge-wrapper">
+            <svg width="200" height="200" class="svg-ring">
+                <circle class="ring-bg" cx="100" cy="100" r="90"></circle>
+                <circle id="progress-bar" class="ring-progress" cx="100" cy="100" r="90"></circle>
+            </svg>
+            <div class="hb-display">
+                <h1 class="hb-value" id="hb-display">{{hb}}</h1>
+                <div style="font-size: 0.8rem; color: #64748b; letter-spacing: 2px;">g/dL</div>
+            </div>
+        </div>
+
+        <div>
+            <span id="status-badge" class="status-badge">{{status}}</span>
+        </div>
+
+        <p style="color: #64748b; font-size: 0.75rem; line-height: 1.6; margin: 0 10px;">
+            Neural mapping complete. RGB saturation levels in the palpebral conjunctiva indicate the above haemoglobin density.
+        </p>
+
+        <div class="btn-group">
+            <a href="/" class="btn btn-back">New Scan</a>
+            <div class="btn btn-download" onclick="window.print()">Export</div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const hbValue = parseFloat("{{hb}}") || 0;
+            const display = document.getElementById('hb-display');
+            const progress = document.getElementById('progress-bar');
+            const badge = document.getElementById('status-badge');
+            
+            // 1. Animate Number
+            let current = 0;
+            const duration = 1500;
+            const startTime = performance.now();
+
+            function animate(now) {
+                const elapsed = now - startTime;
+                const progressRatio = Math.min(elapsed / duration, 1);
+                current = progressRatio * hbValue;
+                display.innerText = current.toFixed(1);
+                
+                if (progressRatio < 1) requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
+
+            // 2. Animate Circular Progress (Max scale 20 g/dL)
+            const circumference = 2 * Math.PI * 90;
+            const offset = circumference - (Math.min(hbValue, 20) / 20) * circumference;
+            setTimeout(() => {
+                progress.style.strokeDashoffset = offset;
+            }, 100);
+
+            // 3. Dynamic Color Coding
+            const statusStr = "{{status}}".toLowerCase();
+            if (statusStr.includes("low") || statusStr.includes("anemic")) {
+                document.documentElement.style.setProperty('--primary', '#ff4b2b');
+                badge.style.borderColor = '#ff4b2b';
+                badge.style.color = '#ff4b2b';
+            } else {
+                document.documentElement.style.setProperty('--primary', '#00ff88');
+                badge.style.borderColor = '#00ff88';
+                badge.style.color = '#00ff88';
+            }
+        };
+    </script>
+</body>
+</html>
